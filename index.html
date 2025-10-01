@@ -1,0 +1,1580 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kurs WebApp — K3karov</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Yangi ko'k rang sxemasi uchun inline CSS */
+    :root {
+      --primary-blue: #0d0072;
+      --secondary-blue: #2d00ff;
+      --light-blue: #4d2aff;
+    }
+    
+    /* Loading indicator yangi rangga */
+    #loadingIndicator {
+      background: var(--secondary-blue);
+    }
+
+    /* O'quvchi modal uchun yangi CSS */
+    .student-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 10000;
+      overflow-y: auto;
+    }
+
+    .student-modal-content {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      margin: 2rem auto;
+      padding: 0;
+      border-radius: 2rem;
+      width: 95%;
+      max-width: 900px;
+      position: relative;
+      border: 2px solid var(--secondary-blue);
+      box-shadow: 0 0 50px rgba(45, 0, 255, 0.5);
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: var(--secondary-blue);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 3rem;
+      height: 3rem;
+      font-size: 1.5rem;
+      cursor: pointer;
+      z-index: 10001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .student-header {
+      background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+      padding: 3rem 2rem;
+      text-align: center;
+      color: white;
+      border-radius: 2rem 2rem 0 0;
+    }
+
+    .student-avatar {
+      width: 100px;
+      height: 100px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      margin: 0 auto 1rem;
+    }
+
+    .student-info h2 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .student-achievement {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      margin-bottom: 1rem;
+    }
+
+    .student-stats {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.5rem 1rem;
+      border-radius: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .student-details {
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    .student-achievements, .student-gallery {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1.5rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .student-achievements h3, .student-gallery h3 {
+      color: var(--secondary-blue);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .achievement-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .achievement-list li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .achievement-list li:before {
+      content: "✓";
+      color: #10b981;
+      font-weight: bold;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+    }
+
+    .gallery-item-modal {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .gallery-item-modal:hover {
+      transform: translateY(-2px);
+      border-color: var(--secondary-blue);
+    }
+
+    .gallery-item-modal i {
+      font-size: 2rem;
+      color: var(--secondary-blue);
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .student-testimonial {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2rem;
+      margin: 2rem;
+      border-radius: 1rem;
+      border-left: 4px solid var(--secondary-blue);
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      .student-details {
+        grid-template-columns: 1fr;
+      }
+      
+      .student-modal-content {
+        margin: 1rem auto;
+        width: 98%;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- NAVBAR -->
+    <header class="safe-top">
+      <div class="header-content">
+        <div class="flex items-center gap-3">
+          <div class="logo">
+            <i class="fas fa-graduation-cap"></i>
+          </div>
+          <div>
+            <div class="site-name">K3karov Loyihasi</div>
+            <div class="site-subtitle">Talaba yuksalishi uchun</div>
+          </div>
+        </div>
+
+        <nav class="nav-desktop">
+          <button data-link="home" class="nav-link active"><i class="fas fa-home"></i> Bosh sahifa</button>
+          <button data-link="advantages" class="nav-link"><i class="fas fa-star"></i> Afzalliklar</button>
+          <button data-link="results" class="nav-link"><i class="fas fa-trophy"></i> Natijalar</button>
+          <button data-link="payment" class="nav-link"><i class="fas fa-credit-card"></i> To'lov</button>
+          <button data-link="contact" class="nav-link"><i class="fas fa-phone"></i> Kontakt</button>
+          <button id="inviteTop" class="secret-btn"><i class="fas fa-lock"></i> Maxsus Taklif</button>
+        </nav>
+
+        <!-- mobile menu -->
+        <div class="nav-mobile">
+          <select id="mobileNav" class="mobile-select">
+            <option value="home">Bosh sahifa</option>
+            <option value="advantages">Afzalliklar</option>
+            <option value="results">Natijalar</option>
+            <option value="payment">To'lov</option>
+            <option value="contact">Kontakt</option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <main class="safe-bottom">
+      <!-- HERO -->
+      <section id="home">
+        <div class="hero-grid">
+          <div class="hero-text">
+            <div class="hero-badge">
+              <i class="fas fa-rocket"></i>
+              K3KAROV LOYIHASI
+            </div>
+            <h1 class="hero-title">SIZNING <span class="text-gradient">MUVAFFAQIYATINGIZ</span> BIZNING VAZIFAMIZ!</h1>
+            <p class="hero-description">
+Bilim va faolligingizni oshirib, turli ko‘rik-tanlovlar, xalqaro musobaqalar va ilmiy konferensiyalarda qatnashishni istasangiz — bu loyiha aynan siz uchun! 
+Prezident, Navoiy, Beruniy kabi nufuzli stipendiyalarni qo‘lga kiritish, “Yil talabasi” va “Islohotlar bilimdoni” kabi tanlovlarda g‘olib bo‘lishni xohlasangiz, imkoniyatni qo‘ldan boy bermang.
+</p>
+
+<p>
+👉 <strong>Shoxrux Kuchkarov va uning jamoasiga qo‘shiling — sizni katta marralar kutmoqda!</strong>
+</p>
+            <div class="stats-grid">
+              <div class="stat-item">
+                <div class="stat-number">98%</div>
+                <div class="stat-label">Muvaffaqiyat darajasi</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number">200+</div>
+                <div class="stat-label">Bitiruvchilar</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number">5+</div>
+                <div class="stat-label">Yillik tajriba</div>
+              </div>
+            </div>
+
+            <div class="hero-buttons">
+              <button id="btnEnroll" class="btn-primary">
+                <i class="fas fa-user-plus"></i>
+                Kursga yozilish
+              </button>
+              <button data-link="advantages" class="btn-secondary">
+                <i class="fas fa-info-circle"></i>
+                Batafsil ma'lumot
+              </button>
+            </div>
+          </div>
+
+          <div class="hero-image">
+            <div class="hero-image-bg"></div>
+            <img src="images/hero-image.png" alt="Kurs rasmi" class="hero-main-image">
+            <div class="floating-card card-1">
+              <i class="fas fa-award"></i>
+              <span>Sertifikat</span>
+            </div>
+            <div class="floating-card card-2">
+              <i class="fas fa-users"></i>
+              <span>Guruh darslari</span>
+            </div>
+            <div class="floating-card card-3">
+              <i class="fas fa-chart-line"></i>
+              <span>100% Natija</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ADVANTAGES -->
+      <section id="advantages" class="hidden">
+        <div class="section-header">
+          <h2 class="section-title">Nega aynan bizni tanlashingiz kerak?</h2>
+          <p class="section-subtitle">Bizning kursimiz sizga nimalarni beradi?</p>
+        </div>
+
+        <div class="advantages-grid">
+          <div class="advantage-card">
+            <div class="advantage-icon">
+              <i class="fas fa-video"></i>
+            </div>
+            <h3>Sifatli darslar</h3>
+            <p>Har bir dars yuqori sifatli video materiallar, amaliy misollar va interaktiv topshiriqlar bilan ta'minlangan</p>
+          </div>
+
+          <div class="advantage-card">
+            <div class="advantage-icon">
+              <i class="fas fa-user-tie"></i>
+            </div>
+            <h3>Shaxsiy mentor</h3>
+            <p>Har bir o'quvchi uchun shaxsiy mentor - sizning Muvaffaqiyatingiz bizning eng muhim vazifamiz</p>
+          </div>
+
+          <div class="advantage-card">
+            <div class="advantage-icon">
+              <i class="fas fa-briefcase"></i>
+            </div>
+            <h3>Haqiqiy loyihalar</h3>
+            <p>Nafaqat nazariya, balki haqiqiy loyihalar va tadbirlarda faollik orqali amaliy ko'nikmalarni o'zlashtirish</p>
+          </div>
+
+          <div class="advantage-card">
+            <div class="advantage-icon">
+              <i class="fas fa-certificate"></i>
+            </div>
+            <h3>Sertifikat</h3>
+            <p>Kursni muvaffaqiyatli tamomlaganingizdan so'ng rasmiy sertifikat</p>
+          </div>
+
+          <div class="advantage-card">
+            <div class="advantage-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <h3>Jamoaviy ish</h3>
+            <p>Maxsus onlayn guruhda boshqa o'quvchilar bilan bilim almashish va loyihalarda hamkorlik qilish</p>
+          </div>
+
+          <div class="advantage-card">
+            <div class="advantage-icon">
+              <i class="fas fa-headset"></i>
+            </div>
+            <h3>24/7 qo'llab-quvvatlash</h3>
+            <p>Kurs davomida har qanday savolingizga tez va sifatli javob olish imkoniyati</p>
+          </div>
+        </div>
+
+        <div class="cta-section">
+          <h3>Hozir ro'yxatdan o'ting va <span class="text-gradient">20% chegirma</span> qo'lga kiriting!</h3>
+          <button id="advantagesEnroll" class="btn-primary large">
+            <i class="fas fa-gift"></i>
+            Chegirma bilan yozilish
+          </button>
+        </div>
+      </section>
+
+      <!-- RESULTS -->
+      <section id="results" class="hidden">  
+      <div class="section-header">
+          <h2 class="section-title">O'quvchilarimizning yutuqlari</h2>
+          <p class="section-subtitle">Bizning bitiruvchilarimiz qanday natijalarga erishdilar</p>
+        </div>
+
+        <div class="results-stats">
+          <div class="result-stat">
+            <div class="result-number">17</div>
+            <div class="result-label">Stipendiyalar</div>
+          </div>
+          <div class="result-stat">
+            <div class="result-number">62</div>
+            <div class="result-label">Sport va salomatlik</div>
+          </div>
+          <div class="result-stat">
+            <div class="result-number">112</div>
+            <div class="result-label">Madaniyat va ijodiy yo‘nalishlar</div>
+          </div>
+          <div class="result-stat">
+            <div class="result-number">23</div>
+            <div class="result-label">Ilmiy, Xalqaro tanlov g'oliblari</div>
+          </div>
+        </div>
+
+         <!-- Karusel qismi - faqat rasmlar -->
+        <div class="carousel-section">
+          <div class="carousel-container">
+            <button class="carousel-btn carousel-prev">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            
+            <div class="carousel">
+              <div class="carousel-track">
+                <div class="carousel-slide active">
+                  <img src="images/carousel/photo1.jpeg" alt="Azizbek M. - Prezident stipendiyasi sohibi">
+                </div>
+                <div class="carousel-slide">
+                  <img src="images/carousel/photo2.jpeg" alt="Sevinch X. - Yil talabasi 2023">
+                </div>
+                <div class="carousel-slide">
+                  <img src="images/carousel/photo3.jpeg" alt="Shahnoza R. - Xalqaro mukofot sovrindori">
+                </div>
+                <div class="carousel-slide">
+                  <img src="images/carousel/photo4.jpeg" alt="Javohir R. - Xalqaro olimpiada g'olibi">
+                </div>
+                <div class="carousel-slide">
+                  <img src="images/carousel/photo5.jpeg" alt="Talaba 5">
+                </div>
+                <div class="carousel-slide">
+                  <img src="images/carousel/photo6.png" alt="Talaba 6">
+                </div>
+                <div class="carousel-slide">
+                  <img src="images/carousel/photo7.jpeg" alt="Talaba 7">
+                </div>
+                <div class="carousel-slide">
+                  <img src="images/carousel/photo8.jpeg" alt="Talaba 8">
+                </div>
+              </div>
+            </div>
+            
+            <button class="carousel-btn carousel-next">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          
+          <!-- Carousel nuqtalar -->
+          <div class="carousel-dots">
+            <span class="dot active" data-slide="0"></span>
+            <span class="dot" data-slide="1"></span>
+            <span class="dot" data-slide="2"></span>
+            <span class="dot" data-slide="3"></span>
+            <span class="dot" data-slide="4"></span>
+            <span class="dot" data-slide="5"></span>
+            <span class="dot" data-slide="6"></span>
+            <span class="dot" data-slide="7"></span>
+          </div>
+        </div>
+
+  <!-- Galereya qismi - rasmlar va ma'lumotlar -->
+       <div class="gallery-section">
+    <h3 class="gallery-title">Muvaffaqiyat hikoyalari</h3>
+      <div class="gallery">
+          <div class="gallery-item" data-student="1">
+              <div class="student-image">
+                  <img src="images/students/dilshod.jpeg" alt="Dilshodbek" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                  <div class="student-placeholder">
+                      <i class="fas fa-user-graduate"></i>
+                      <span>Dilshodbek M.</span>
+                  </div>
+              </div>
+              <div class="gallery-overlay">
+                  <h4>Muhammadiyev Dilshodbek Islomovich</h4>
+                  <p>Yosh Lider</p>
+                  <button class="view-portfolio">Portfolioni ko'rish</button>
+              </div>
+          </div>
+          
+          <div class="gallery-item" data-student="2">
+              <div class="student-image">
+                  <img src="images/students/Shahnoza.png" alt="Shahnoza." onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                  <div class="student-placeholder">
+                      <i class="fas fa-user-graduate"></i>
+                      <span>Shahnoza Hojimurodova Dilmurod qizi</span>
+                  </div>
+              </div>
+              <div class="gallery-overlay">
+                  <h4>Shahnoza Hojimurodova Dilmurod qizi.</h4>
+                  <p>MDHning Eng Nufuzli Iqtidor Sohibasi – 2023</p>
+                  <button class="view-portfolio">Portfolioni ko'rish</button>
+              </div>
+          </div>
+          
+          <div class="gallery-item" data-student="3">
+              <div class="student-image">
+                  <img src="images/students/ulugbek.jpeg" alt="Ulugbek Sh." onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                  <div class="student-placeholder">
+                      <i class="fas fa-user-graduate"></i>
+                      <span>Ulugbek Sh.</span>
+                  </div>
+              </div>
+              <div class="gallery-overlay">
+                  <h4>Shonazarov Ulug’bek Jo`rabekovich.</h4>
+                  <p>Xalqaro olimpiada g'olibi</p>
+                  <button class="view-portfolio">Portfolioni ko'rish</button>
+              </div>
+          </div>
+          
+          <div class="gallery-item" data-student="4">
+              <div class="student-image">
+                  <img src="images/students/nabiyev.png" alt="Madina S." onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                  <div class="student-placeholder">
+                      <i class="fas fa-user-graduate"></i>
+                      <span>Nabiyev Nasimbek.</span>
+                  </div>
+              </div>
+              <div class="gallery-overlay">
+                  <h4>Nabiyev Nasimbek Shuhratjon o`g`li</h4>
+                  <p>Yoshlar Parlamenti faollar jamoasi azosi</p>
+                  <button class="view-portfolio">Portfolioni ko'rish</button>
+              </div>
+          </div>
+          
+          <div class="gallery-item" data-student="5">
+              <div class="student-image">
+                  <img src="images/students/baxtiyor.jpeg" alt="Baxtiyor." onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                  <div class="student-placeholder">
+                      <i class="fas fa-user-graduate"></i>
+                      <span>Shoxrux K.</span>
+                  </div>
+              </div>
+              <div class="gallery-overlay">
+                  <h4>Bahodirov Bahtiyorjon Bahromjon o`g`li</h4>
+                  <p>Ful stack dasturchi</p>
+                  <button class="view-portfolio">Portfolioni ko'rish</button>
+              </div>
+          </div>
+          
+          <div class="gallery-item" data-student="6">
+              <div class="student-image">
+                  <img src="images/students/shamshod.JPG" alt="Dilnoza A." onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                  <div class="student-placeholder">
+                      <i class="fas fa-user-graduate"></i>
+                      <span>Amanqulov Shamshod Shodibek o`g`li</span>
+                  </div>
+              </div>
+              <div class="gallery-overlay">
+                  <h4>Amanqulov Shamshod Shodibek o`g`li</h4>
+                  <p>Huquq bilimdoni ko`plab korik tanlovlar g`olibi</p>
+                  <button class="view-portfolio">Portfolioni ko'rish</button>
+              </div>
+          </div>
+                    <div class="gallery-item" data-student="7">
+              <div class="student-image">
+                  <img src="images/students/laziz.JPG" alt="Lazizbek." onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                  <div class="student-placeholder">
+                      <i class="fas fa-user-graduate"></i>
+                      <span>Teshaboyev Lazizbek.</span>
+                  </div>
+              </div>
+              <div class="gallery-overlay">
+                  <h4>Teshaboyev Lazizbek</h4>
+                  <p>JIDU talabasi</p>
+                  <button class="view-portfolio">Portfolioni ko'rish</button>
+              </div>
+          </div>
+
+                    <div class="gallery-item" data-student="8">
+              <div class="student-image">
+                  <img src="images/students/amir.JPG" alt="Amir.A." onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                  <div class="student-placeholder">
+                      <i class="fas fa-user-graduate"></i>
+                      <span>AMIR ASKAROV</span>
+                  </div>
+              </div>
+              <div class="gallery-overlay">
+                  <h4>AMIR ASKAROV</h4>
+                  <p>Yil fidoiysi-2024</p>
+                  <button class="view-portfolio">Portfolioni ko'rish</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+        <div class="testimonials">
+          <h3>O'quvchilarimiz fikrlari</h3>
+          <div class="testimonial-cards">
+            <div class="testimonial-card">
+              <div class="testimonial-text">
+                "Kurs davomida nafaqat bilim, balki ish topishga yordam beradigan ko'nikmalarni ham o'rgandim. Rahmat!"
+              </div>
+              <div class="testimonial-author">
+                <div class="author-avatar">
+                  <i class="fas fa-user-graduate"></i>
+                </div>
+                <div>
+                  <div class="author-name">Azizbek M.</div>
+                  <div class="author-role">Prezident stipendiyasi sohibi</div>
+                </div>
+              </div>
+            </div>
+            <div class="testimonial-card">
+              <div class="testimonial-text">
+                "Mentorimning har bir maslahati haqiqatan ham qimmatli bo'ldi. Kurs narxi o'zini to'liq oqladi."
+              </div>
+              <div class="testimonial-author">
+                <div class="author-avatar">
+                  <i class="fas fa-user-graduate"></i>
+                </div>
+                <div>
+                  <div class="author-name">Sevinch X.</div>
+                  <div class="author-role">Yil talabasi 2023</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAYMENT -->
+      <section id="payment" class="hidden">
+        <div class="section-header">
+          <h2 class="section-title">Kursga yozilish</h2>
+          <p class="section-subtitle">Quyidagi formani to'ldiring va biz siz bilan bog'lanamiz</p>
+        </div>
+
+        <div class="payment-container">
+          <div class="payment-card">
+            <div class="payment-header">
+              <h3><i class="fas fa-crown"></i> Premium Kurs Paketi</h3>
+              <div class="price-tag">
+                <div class="old-price">2 500 000 UZS</div>
+                <div class="current-price">2 000 000 UZS</div>
+                <div class="discount">20% chegirma</div>
+              </div>
+            </div>
+
+            <div class="payment-features">
+              <div class="feature-item">
+                <i class="fas fa-check"></i>
+                <span>Barcha ofline darslar</span>
+              </div>
+              <div class="feature-item">
+                <i class="fas fa-check"></i>
+                <span>Amaliy tadbirlar</span>
+              </div>
+              <div class="feature-item">
+                <i class="fas fa-check"></i>
+                <span>Loyihalar portfoliosi</span>
+              </div>
+              <div class="feature-item">
+                <i class="fas fa-check"></i>
+                <span>Sertifikat</span>
+              </div>
+              <div class="feature-item">
+                <i class="fas fa-check"></i>
+                <span>Doimiy qo'llab-quvvatlash</span>
+              </div>
+            </div>
+
+            <div class="payment-form">
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fas fa-user"></i>
+                  To'liq ismingiz
+                </label>
+                <input id="inputName" class="form-input" placeholder="Ism familiyangiz">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fas fa-phone"></i>
+                  Telefon raqamingiz
+                </label>
+                <input id="inputPhone" class="form-input" placeholder="+998901234567">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fas fa-envelope"></i>
+                  Email manzilingiz
+                </label>
+                <input id="inputEmail" class="form-input" placeholder="siz@email.uz">
+              </div>
+
+              <div class="payment-summary">
+                <div class="summary-item">
+                  <span>Kurs narxi:</span>
+                  <span id="priceDisplay">2 000 000 UZS</span>
+                </div>
+                <div class="summary-item">
+                  <span>Chegirma:</span>
+                  <span class="discount-text">-500 000 UZS</span>
+                </div>
+                <div class="summary-item total">
+                  <span>Jami to'lov:</span>
+                  <span id="pricePay">2 000 000 UZS</span>
+                </div>
+              </div>
+
+              <button id="payBtn" class="btn-payment">
+                <i class="fas fa-paper-plane"></i>
+                Arizani yuborish
+              </button>
+
+              <p class="payment-guarantee">
+                <i class="fas fa-shield-alt"></i>
+                <strong>Kafolatlangan:</strong> Kurs sifatiga 100% javob beramiz va natija bo'lishini kafolatlaymiz
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACT -->
+      <section id="contact" class="hidden">
+        <div class="section-header">
+          <h2 class="section-title">Bog'lanish</h2>
+          <p class="section-subtitle">Savollaringiz bormi? Biz bilan bog'laning</p>
+        </div>
+
+        <div class="contact-container">
+          <div class="contact-info">
+            <div class="contact-card">
+              <div class="contact-icon">
+                <i class="fas fa-phone"></i>
+              </div>
+              <h3>Telefon</h3>
+              <p>Qo'ng'iroq qiling</p>
+              <a href="tel:+998944961155" class="contact-link">+998 94 496 11 55</a>
+            </div>
+
+            <div class="contact-card">
+              <div class="contact-icon">
+                <i class="fab fa-telegram"></i>
+              </div>
+              <h3>Telegram</h3>
+              <p>Tezkor javob</p>
+              <a href="https://t.me/K3karovBot" class="contact-link">@K3karov</a>
+            </div>
+
+            <div class="contact-card">
+              <div class="contact-icon">
+                <i class="fab fa-instagram"></i>
+              </div>
+              <h3>Instagram</h3>
+              <p>Bizni kuzatib boring</p>
+              <a href="https://instagram.com/kuchkarov_blog" class="contact-link">@K3karov</a>
+            </div>
+          </div>
+
+          <div class="working-hours">
+            <h3><i class="fas fa-clock"></i> Ish vaqti</h3>
+            <div class="time-slot">
+              <span>Dushanba - Juma:</span>
+              <span>9:00 - 18:00</span>
+            </div>
+            <div class="time-slot">
+              <span>Shanba:</span>
+              <span>9:00 - 14:00</span>
+            </div>
+            <div class="time-slot">
+              <span>Yakshanba:</span>
+              <span>Dam olish kuni</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FOOTER -->
+      <footer>
+        <div class="footer-content">
+          <div class="footer-copyright">
+            © <span id="yr">2024</span> K3karov loyihasi. Barcha huquqlar himoyalangan.
+          </div>
+        </div>
+      </footer>
+    </main>
+
+    <!-- SUCCESS MODAL -->
+    <div id="successModal" class="modal">
+      <div class="modal-content success-modal">
+        <div class="success-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <h3>Muvaffaqiyatli ro'yxatdan o'tdingiz!</h3>
+        <p>Tez orada operatorimiz siz bilan bog'lanadi va to'lov haqida batafsil ma'lumot beradi.</p>
+        <p class="success-note">
+          <i class="fas fa-info-circle"></i>
+          To'lovni amalga oshirganingizdan so'ng, sizga maxsus Telegram guruhiga kirish havolasi yuboriladi.
+        </p>
+        <button id="successClose" class="btn-primary">Tushunarli</button>
+      </div>
+    </div>
+  </div>
+
+
+
+<!-- O'QUVCHI PORTFOLIO MODALLARI -->
+
+
+
+<!-- ############################################################################ -->
+<!-- ########################## Muhammadiyev Dilshod ############################ -->
+<!-- ############################################################################ -->
+
+
+<div id="student1-modal" class="student-modal">
+    <div class="student-modal-content">
+        <button class="close-modal">&times;</button>
+        
+        <div class="student-header">
+            <div class="student-avatar">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="student-info">
+                <h2>Muhammadiyev Dilshodbek</h2>
+                <p class="student-achievement">Ko`plab ko`rik tanlovlar sovrindori</p>
+                <div class="student-stats">
+                    <span class="stat"><i class="fas fa-trophy"></i> 5 ta mukofot</span>
+                    <span class="stat"><i class="fas fa-certificate"></i> 12 ta sertifikat</span>
+                    <span class="stat"><i class="fas fa-star"></i> 4.9 baho</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-details">
+            <div class="student-achievements">
+                <h3><i class="fas fa-trophy"></i> Yutuqlar</h3>
+                <ul class="achievement-list">
+                    <li>"Millat umidi" ko`krak nishoni bilan taqirlangan</li>
+                    <li>"Yuksak xizmatlari" uchun ko`krak nishoni</li>
+                    <li>"MILLIY IFTIXOR" ko`krak nishoni</li>
+                    <li>Ko`plab ilmiy maqola muallifi</li>
+                    <li>O`zbekiston Lider Yoshlari jamoasi azosi</li>
+                </ul>
+            </div>
+
+            <div class="student-gallery">
+                <h3><i class="fas fa-images"></i> Sertifikatlar</h3>
+                <div class="gallery-grid">
+                    <div class="gallery-item-modal" data-certificate="prezident">
+                        <div class="certificate-image">
+                            <img src="images/certificates/dilshod1.jpeg" alt="Prezident stipendiyasi" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-award"></i>
+                            </div>
+                        </div>
+                        <span>MDH miqyosidagi "Xalq umidi" ko`rik tanlovi g`olibi</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="olimpiada">
+                        <div class="certificate-image">
+                            <img src="images/certificates/dilshod2.jpeg" alt="MDH ko`krak nishoni" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-medal"></i>
+                            </div>
+                        </div>
+                        <span>MDH ko`krak nishoni</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="ielts">
+                        <div class="certificate-image">
+                            <img src="images/certificates/dilshod3.jpeg" alt="Yuksak xizmatlari" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-certificate"></i>
+                            </div>
+                        </div>
+                        <span>Yuksak xizmatlari ko`krak nishoni</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="bitiruv">
+                        <div class="certificate-image">
+                            <img src="images/certificates/dilshod4.jpeg" alt="Milliy Iftixor" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                        </div>
+                        <span>Milliy Iftixor</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-testimonial">
+            "Kurs davomida nafaqat bilim, balki ish topishga yordam beradigan ko'nikmalarni ham o'rgandim. Mentorim har bir qadamda meni qo'llab-quvvatladi. Rahmat!"
+        </div>
+    </div>
+</div>
+
+
+<!-- ############################################################################ -->
+<!-- ########################## Shahnoza portfolio ############################## -->
+<!-- ############################################################################ -->
+
+
+<div id="student2-modal" class="student-modal">
+    <div class="student-modal-content">
+        <button class="close-modal">&times;</button>
+        
+        <div class="student-header">
+            <div class="student-avatar">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="student-info">
+                <h2>Shahnoza R.</h2>
+                <p class="student-achievement">Xalqaro mukofotlar sovrindori</p>
+                <div class="student-stats">
+                    <span class="stat"><i class="fas fa-trophy"></i> 7 ta mukofot</span>
+                    <span class="stat"><i class="fas fa-certificate"></i> 15 ta sertifikat</span>
+                    <span class="stat"><i class="fas fa-star"></i> 5.0 baho</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-details">
+            <div class="student-achievements">
+                <h3><i class="fas fa-trophy"></i> Yutuqlar</h3>
+                <ul class="achievement-list">
+                    <li>"Most Influential Talent – 2023" (MDH, Hindiston) – Statuetka bilan taqdirlangan</li>
+                    <li>"Kelajak qanoti – 2024" (MDH, Toshkent) – Statuetka bilan taqdirlangan</li>
+                    <li>"Peace Ambassador" sertifikati – Iqra Foundation (2024, Hindiston)</li>
+                    <li>"MDH yetakchisi" ko'krak nishoni – Xalqaro MDH yetakchilari tanlovida (2023, Toshkent)</li>
+                    <li>"Qonun ijodkorligida yoshlarning o'rni" konferensiyasi – Oliy Majlis (2023, Toshkent)</li>
+                </ul>
+            </div>
+
+            <div class="student-gallery">
+                <h3><i class="fas fa-images"></i> Sertifikatlar</h3>
+                <div class="gallery-grid">
+                    <div class="gallery-item-modal" data-certificate="influential-talent">
+                        <div class="certificate-image">
+                            <img src="images/certificates/shahnoza-influential.png" alt="Most Influential Talent" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-award"></i>
+                            </div>
+                        </div>
+                        <span>Most Influential Talent</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="kelajak-qanoti">
+                        <div class="certificate-image">
+                            <img src="images/certificates/shahnoza-kelajak.png" alt="Kelajak qanoti" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-medal"></i>
+                            </div>
+                        </div>
+                        <span>Kelajak qanoti</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="peace-ambassador">
+                        <div class="certificate-image">
+                            <img src="images/certificates/shahnoza-peace.png" alt="Peace Ambassador" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-certificate"></i>
+                            </div>
+                        </div>
+                        <span>Peace Ambassador</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="mdh-yetakchi">
+                        <div class="certificate-image">
+                            <img src="images/certificates/shahnoza-mdh.png" alt="MDH yetakchisi" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                        </div>
+                        <span>MDH yetakchisi</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-testimonial">
+            "Kurs orqali nafaqat bilimlarim oshdi, balki xalqaro miqyosda o'z o'rnimni topdim. Mentorimning qo'llab-quvvatlashi meni yangi cho'qqilarga olib chiqdi."
+        </div>
+    </div>
+</div>
+
+<!-- ############################################################################ -->
+<!-- ##########################  Nasimbek N ############################## -->
+<!-- ############################################################################ -->
+
+
+<div id="student4-modal" class="student-modal">
+    <div class="student-modal-content">
+        <button class="close-modal">&times;</button>
+        
+        <div class="student-header">
+            <div class="student-avatar">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="student-info">
+                <h2>Nasimbek N.</h2>
+                <p class="student-achievement">Muqimiy stipendiyasi sohibi</p>
+                <div class="student-stats">
+                    <span class="stat"><i class="fas fa-trophy"></i> 3 ta mukofot</span>
+                    <span class="stat"><i class="fas fa-certificate"></i> 8 ta sertifikat</span>
+                    <span class="stat"><i class="fas fa-star"></i> 4.2 baho</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-details">
+            <div class="student-achievements">
+                <h3><i class="fas fa-trophy"></i> Yutuqlar</h3>
+                <ul class="achievement-list">
+                    <li>2023: Maktabgacha va maktab ta'limi vazirligi, PDP universiteti va KHISO oquv markazi tomonidan otkazilgan matematika fan olimpiadasi Respublika bosqichi 2-orin sohibi</li>
+                    <li>2023: AJOU university in Tashkent 50% scholarship</li>
+                    <li>2025: Muhammad Aminxoʻja Muqimiy nomidagi maxsus stipendiya va ko'krak nishoni sohibi</li>
+                    <li>2025: O'zbekiston Respublikasi Oliy Majlis Senati huzuridagi Yoshlar Parlamentining "Faollar jamoasi" a'zosi</li>
+                    <li>10 dan ortiq maqola va tezislar muallifi</li>
+                </ul>
+            </div>
+
+            <div class="student-gallery">
+                <h3><i class="fas fa-images"></i> Sertifikatlar</h3>
+                <div class="gallery-grid">
+                    <div class="gallery-item-modal" data-certificate="yil-talabasi">
+                        <div class="certificate-image">
+                            <img src="images/certificates/nabiyev1.jpeg" alt="Yil talabasi" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-award"></i>
+                            </div>
+                        </div>
+                        <span>Ielts</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="navoiy">
+                        <div class="certificate-image">
+                            <img src="images/certificates/nabiyev2.jpeg" alt="Navoiy stipendiyasi" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-medal"></i>
+                            </div>
+                        </div>
+                        <span>1-kurs loyihasi g`olibi</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="konferensiya">
+                        <div class="certificate-image">
+                            <img src="images/certificates/nabiyev3.jpeg" alt="Xalqaro konferensiya" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-certificate"></i>
+                            </div>
+                        </div>
+                        <span>ekologik partiya faoli</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="volonter">
+                        <div class="certificate-image">
+                            <img src="images/certificates/nabiyev4.jpeg" alt="Volonterlik loyihasi" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                        </div>
+                        <span>Ilmiy maqola</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-testimonial">
+            "Mentorimning har bir maslahati haqiqatan ham qimmatli bo'ldi. Kurs narxi o'zini to'liq oqladi."
+        </div>
+    </div>
+</div>
+
+
+<!-- ############################################################################ -->
+<!-- ############################ Ulug`bek ################################### -->
+<!-- ############################################################################ -->
+
+
+<div id="student3-modal" class="student-modal">
+    <div class="student-modal-content">
+        <button class="close-modal">&times;</button>
+        
+        <div class="student-header">
+            <div class="student-avatar">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="student-info">
+                <h2>Ulugbek Sh.</h2>
+                <p class="student-achievement">Yil talabasi 2023</p>
+                <div class="student-stats">
+                    <span class="stat"><i class="fas fa-trophy"></i> 3 ta mukofot</span>
+                    <span class="stat"><i class="fas fa-certificate"></i> 8 ta sertifikat</span>
+                    <span class="stat"><i class="fas fa-star"></i> 4.8 baho</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-details">
+            <div class="student-achievements">
+                <h3><i class="fas fa-trophy"></i> Yutuqlar</h3>
+                <ul class="achievement-list">
+                    <li>2023-2024 yili lider o’quvchi nominatsiya g’olibi</li>
+                    <li>2024-2025  o’quv yilida yil lideri va islohotchi nominatsiyasi</li>
+                    <li>Digital Generation respublika tanlovida 1-o’rin</li>
+                    <li>Xalqaro Diplomatik club loyihasida faol ishtirok</li>
+                    <li>Maktab lider o’quvchilar nominatsiyasi</li>
+                </ul>
+            </div>
+
+            <div class="student-gallery">
+                <h3><i class="fas fa-images"></i> Sertifikatlar</h3>
+                <div class="gallery-grid">
+                    <div class="gallery-item-modal" data-certificate="yil-talabasi">
+                        <div class="certificate-image">
+                            <img src="images/certificates/ulugbek.jpeg" alt="Rossiya" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-award"></i>
+                            </div>
+                        </div>
+                        <span>Moskva 2025</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="navoiy">
+                        <div class="certificate-image">
+                            <img src="images/certificates/ulugbek1.jpeg" alt="Kazan" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-medal"></i>
+                            </div>
+                        </div>
+                        <span>Qozon 2025</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="konferensiya">
+                        <div class="certificate-image">
+                            <img src="images/certificates/ulugbek2.jpeg" alt="Polsha Varshava" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-certificate"></i>
+                            </div>
+                        </div>
+                        <span>Polsha Varshava</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="volonter">
+                        <div class="certificate-image">
+                            <img src="images/certificates/ulugbek4.jpeg" alt="Volonterlik loyihasi" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                        </div>
+                        <span>O`zbekiston Lider Yoshlar Ensiklopediyasi</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-testimonial">
+            "Shohrux akamning har bir maslahati haqiqatan ham qimmatli bo'ldi. Kurs narxi o'zini to'liq oqladi."
+        </div>
+    </div>
+</div>
+
+
+<!-- ############################################################################ -->
+<!-- ##########################   Baxtiyor Baxodirov  ########################### -->
+<!-- ############################################################################ -->
+
+
+<div id="student5-modal" class="student-modal">
+    <div class="student-modal-content">
+        <button class="close-modal">&times;</button>
+        
+        <div class="student-header">
+            <div class="student-avatar">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="student-info">
+                <h2>Baxtiyor B.B.</h2>
+                <p class="student-achievement">BaxaTech LLC asoschisi</p>
+                <div class="student-stats">
+                    <span class="stat"><i class="fas fa-trophy"></i> 4 ta mukofot</span>
+                    <span class="stat"><i class="fas fa-certificate"></i> 9 ta sertifikat</span>
+                    <span class="stat"><i class="fas fa-star"></i> 4.8 baho</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-details">
+            <div class="student-achievements">
+                <h3><i class="fas fa-trophy"></i> Yutuqlar</h3>
+                <ul class="achievement-list">
+                    <li>Yoshlar Parlamenti faollar jamoasi azosi</li>
+                    <li>Respublika Yoshlar agentligi volontyorlik jamoasi azosi</li>
+                    <li>BaxaTech Software computer service MChJ asoschisi</li>
+                    <li>10 lab ilmiy maqola muallifi</li>
+                    <li>Darmon nomli farmasevtika dasturi muallifi</li>
+                    <li>President Tech Award Startuplar tanlovi 3-bosqich g`olibi</li>
+                    <li>Qo`l jangi bo`yicha 2 karra Respublika chempioni</li>
+                    <li>Ushbu sayt yaratuvchisi</li>
+                </ul>
+            </div>
+
+            <div class="student-gallery">
+                <h3><i class="fas fa-images"></i> Sertifikatlar</h3>
+                <div class="gallery-grid">
+                    <div class="gallery-item-modal" data-certificate="Mobile UI">
+                        <div class="certificate-image">
+                            <img src="images/certificates/baxtiyor1.png" alt="Yil talabasi" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-award"></i>
+                            </div>
+                        </div>
+                        <span>IxDF Course certification</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="navoiy">
+                        <div class="certificate-image">
+                            <img src="images/certificates/baxtiyor2.png" alt="BBH" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-medal"></i>
+                            </div>
+                        </div>
+                        <span>Bug bounty hunter</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="konferensiya">
+                        <div class="certificate-image">
+                            <img src="images/certificates/baxtiyor3.png" alt="Xalqaro konferensiya" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-certificate"></i>
+                            </div>
+                        </div>
+                        <span>Xalqaro konferensiya</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="volonter">
+                        <div class="certificate-image">
+                            <img src="images/certificates/baxtiyor4.png" alt="Frontend dev" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                        </div>
+                        <span>Frontend Developer</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-testimonial">
+            "Bu kurs haqiqatan narxini oqlaydi. Men Shoxrux akam yordamlari bilan juda ko'p narsalarni o`rgandim va ularning ko`maklarida anchagina yutuqlarga erishdim."
+        </div>
+    </div>
+</div>
+
+
+<!-- ############################################################################ -->
+<!-- ######################## Shamshodbek ################################# -->
+<!-- ############################################################################ -->
+
+
+<div id="student6-modal" class="student-modal">
+    <div class="student-modal-content">
+        <button class="close-modal">&times;</button>
+        
+        <div class="student-header">
+            <div class="student-avatar">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="student-info">
+                <h2>Amanqulov Shamshod Shodibek o`g`li</h2>
+                <p class="student-achievement">O'zbekiston Respublikasi Bosh prokuraturasi  huzuridagi Huquqni muhofaza qilish akademiyasi talabasi</p>
+                <div class="student-stats">
+                    <span class="stat"><i class="fas fa-trophy"></i> 3 ta mukofot</span>
+                    <span class="stat"><i class="fas fa-certificate"></i> 8 ta sertifikat</span>
+                    <span class="stat"><i class="fas fa-star"></i> 4.8 baho</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-details">
+            <div class="student-achievements">
+                <h3><i class="fas fa-trophy"></i> Yutuqlar</h3>
+                <ul class="achievement-list">
+                    <li>"Huquq bilimdonlari" Respublika ko'rik tanlovida faol ishtirokchisi;</li>
+                    <li>"Yoshlar va qonun" Respublika huquqiy ko'rik tanlovi g'olibi</li>
+                    <li>"Eng yaxshi xizmatlari uchun" esdalik medali sohibi</li>
+                    <li>2 ta ilmiy maqola muallifi</li>
+                    <li>"Yosh olimlar" milliy-amaliy konferensiyasi tezislar tanlovi g`olibi </li>
+                </ul>
+            </div>
+
+            <div class="student-gallery">
+                <h3><i class="fas fa-images"></i> Sertifikatlar</h3>
+                <div class="gallery-grid">
+                    <div class="gallery-item-modal" data-certificate="yil-talabasi">
+                        <div class="certificate-image">
+                            <img src="images/certificates/shamshod1.JPG" alt="Huquq bilimdoni" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-award"></i>
+                            </div>
+                        </div>
+                        <span>Huquq bilimdoni</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="navoiy">
+                        <div class="certificate-image">
+                            <img src="images/certificates/shamshod2.HEIC" alt="Eco-Partiya faoli" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-medal"></i>
+                            </div>
+                        </div>
+                        <span>Eco Partiya faol a`zosi</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="konferensiya">
+                        <div class="certificate-image">
+                            <img src="images/certificates/shamshod3.HEIC" alt="Yoshlar va qonun" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-certificate"></i>
+                            </div>
+                        </div>
+                        <span>"Yoshlar va Qonun" ko`rik tanlovi 1-o`rin</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="volonter">
+                        <div class="certificate-image">
+                            <img src="images/certificates/shamshod4.HEIC" alt="Volonterlik loyihasi" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                        </div>
+                        <span>Xalqaro konferensiya</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-testimonial">
+            "Mentorimning har bir maslahati haqiqatan ham qimmatli bo'ldi. Kurs narxi o'zini to'liq oqladi."
+        </div>
+    </div>
+</div>
+
+
+<!-- ############################################################################ -->
+<!-- #########################  Laziz Teshaboyev ################################ -->
+<!-- ############################################################################ -->
+
+
+<div id="student7-modal" class="student-modal">
+    <div class="student-modal-content">
+        <button class="close-modal">&times;</button>
+        
+        <div class="student-header">
+            <div class="student-avatar">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="student-info">
+                <h2>Teshaboyev Lazizbek</h2>
+                <p class="student-achievement">Jahon Iqtisodiyoti va Diplomatiya universiteti talabasi</p>
+                <div class="student-stats">
+                    <span class="stat"><i class="fas fa-trophy"></i> 3 ta mukofot</span>
+                    <span class="stat"><i class="fas fa-certificate"></i> 8 ta sertifikat</span>
+                    <span class="stat"><i class="fas fa-star"></i> 4.8 baho</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-details">
+            <div class="student-achievements">
+                <h3><i class="fas fa-trophy"></i> Yutuqlar</h3>
+                <ul class="achievement-list">
+                    <li>2023-24 yillar Toshkent shahar Tarix fani olimpiada g`olibi</li>
+                    <li>2024-yil aprelda Respublika tarix fan olimpiadasi g`olibi</li>
+                    <li>Xalqaro konferensiyalar ishtirokchisi</li>
+                    <li>10 lab ilmiy maqola muallifi</li>
+                    <li>Volontyorlik loyihasi lideri</li>
+                </ul>
+            </div>
+
+            <div class="student-gallery">
+                <h3><i class="fas fa-images"></i> Sertifikatlar</h3>
+                <div class="gallery-grid">
+                    <div class="gallery-item-modal" data-certificate="Tarix Milliy sertifikat">
+                        <div class="certificate-image">
+                            <img src="images/certificates/laziz1.JPG" alt="Milliy sertifikat" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-award"></i>
+                            </div>
+                        </div>
+                        <span>Tarix fanidan milliy sertifikat</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="Xitoy tilidan milliy sertifikat">
+                        <div class="certificate-image">
+                            <img src="images/certificates/laziz2.JPG" alt="Milliy sertifikat" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-medal"></i>
+                            </div>
+                        </div>
+                        <span>Xitoy tilidan millliy sertifikat</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="konferensiya">
+                        <div class="certificate-image">
+                            <img src="images/certificates/laziz3.jpeg" alt="Eco Partiya faoli" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-certificate"></i>
+                            </div>
+                        </div>
+                        <span>Eco-partiya faoli</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="volonter">
+                        <div class="certificate-image">
+                            <img src="images/certificates/laziz4.jpeg" alt="Volontyorlik loyihasi" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                        </div>
+                        <span>Volontyorlik loyihasi</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-testimonial">
+            "Bu loyihaga kirishdan oldin bunchalik ko`p yutuqlarga erishmagan edim, lekin Shoxrux aka yordamida juda ko`p narsalarni o`rgandim va yutuqlarga erishdim."
+        </div>
+    </div>
+</div>
+
+
+<!-- ############################################################################ -->
+<!-- ############################# Amir Askrarov ################################ -->
+<!-- ############################################################################ -->
+
+
+<div id="student8-modal" class="student-modal">
+    <div class="student-modal-content">
+        <button class="close-modal">&times;</button>
+        
+        <div class="student-header">
+            <div class="student-avatar">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="student-info">
+                <h2>Amir Askarov.</h2>
+                <p class="student-achievement">Ichki ishlar vaziri stipendiyasi sohibi</p>
+                <div class="student-stats">
+                    <span class="stat"><i class="fas fa-trophy"></i> 3 ta mukofot</span>
+                    <span class="stat"><i class="fas fa-certificate"></i> 8 ta sertifikat</span>
+                    <span class="stat"><i class="fas fa-star"></i> 4.4 baho</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-details">
+            <div class="student-achievements">
+                <h3><i class="fas fa-trophy"></i> Yutuqlar</h3>
+                <ul class="achievement-list">
+                    <li>Ichki ishlar vaziri stipendiyasi sohibi</li>
+                    <li>"Yosh huquqshunos" tanlovining respublika bosqichi g'olibi</li>
+                    <li>"Yoshlar va qonun" huquqiy tanlovining respublika bosqichi g`olibi</li>
+                    <li>Mirzo Ulug'bek vorislari tanlovi g'olibi</li>
+                    <li>Yil fidoyisi-2024: "Yilning eng fidoyi faol talabasi" nominatsiyasi egasi</li>
+                </ul>
+            </div>
+
+            <div class="student-gallery">
+                <h3><i class="fas fa-images"></i> Sertifikatlar</h3>
+                <div class="gallery-grid">
+                    <div class="gallery-item-modal" data-certificate="yil-talabasi">
+                        <div class="certificate-image">
+                            <img src="images/certificates/amir2.jpg" alt="Yil talabasi" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-award"></i>
+                            </div>
+                        </div>
+                        <span>"Yosh huquqshunos" tanlovi g`olibi</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="UAMUN 2025">
+                        <div class="certificate-image">
+                            <img src="images/certificates/amir3.jpg" alt="UAMUN 2025" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-medal"></i>
+                            </div>
+                        </div>
+                        <span>UAMUN 2025</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="konferensiya">
+                        <div class="certificate-image">
+                            <img src="images/certificates/Amir1.jpg" alt="Xalqaro konferensiya" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-certificate"></i>
+                            </div>
+                        </div>
+                        <span>Xalqaro konferensiya</span>
+                    </div>
+                    
+                    <div class="gallery-item-modal" data-certificate="volonter">
+                        <div class="certificate-image">
+                            <img src="images/certificates/amir4.jpg" alt="Volonterlik loyihasi" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="certificate-placeholder">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                        </div>
+                        <span>Volontyorlik loyihasi</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-testimonial">
+            "Men bu kursni tugatganimdan umuman afsuslanmayman, bu kurs menga hayotda juda ko`p yordam berdi, juda koplab yutuqlarga erishdim."
+        </div>
+    </div>
+</div>
+
+
+    <!-- Boshqa o'quvchilar portfolio modallari shu tartibda qo'shiladi -->
+
+  <script src="js/script.js"></script>
+  <!-- Loading indicator for debugging -->
+<div id="loadingIndicator" style="display: none; position: fixed; top: 10px; left: 10px; background: #2d00ff; color: white; padding: 10px; border-radius: 5px; z-index: 10000;">
+    Sayt yuklanmoqda...
+</div>
+
+<script>
+// Simple debug indicator
+document.addEventListener('DOMContentLoaded', function() {
+    const indicator = document.getElementById('loadingIndicator');
+    if (indicator) {
+        indicator.style.display = 'block';
+        setTimeout(() => {
+            indicator.style.display = 'none';
+        }, 2000);
+    }
+    
+    // Yilni yangilash
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    // O'quvchi portfolio modallari uchun JavaScript
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    const studentModals = document.querySelectorAll('.student-modal');
+    const closeButtons = document.querySelectorAll('.close-modal');
+
+    // Gallery item bosilganda modal ochish
+    galleryItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const studentId = this.getAttribute('data-student');
+            const modal = document.getElementById(`student${studentId}-modal`);
+            if (modal) {
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+        });
+    });
+
+    // Modal yopish
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const modal = this.closest('.student-modal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
+    });
+
+    // Tashqariga bosilganda modal yopish
+    studentModals.forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+    });
+
+    // View portfolio tugmasi
+    const viewPortfolioBtns = document.querySelectorAll('.view-portfolio');
+    viewPortfolioBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const studentId = this.closest('.gallery-item').getAttribute('data-student');
+            const modal = document.getElementById(`student${studentId}-modal`);
+            if (modal) {
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+        });
+    });
+});
+</script>
+</body>
+</html>
